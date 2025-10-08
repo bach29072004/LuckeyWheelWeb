@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Vòng Quay May Mắn Pro</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: radial-gradient(circle at center, #f7faff, #d0e2ff);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #2b2b2b;
+      margin-bottom: 10px;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    canvas {
+      border-radius: 50%;
+      margin-top: 30px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      background: #fff;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      outline: none;
+    }
+
+    button {
+      padding: 8px 14px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.25s;
+      color: #fff;
+    }
+    #addBtn { background: #28a745; }
+    #spinBtn { background: #007bff; }
+    #resetBtn { background: #dc3545; }
+
+    button:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    #list {
+      margin-top: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      padding: 12px 20px;
+      width: 320px;
+    }
+
+    #list h3 {
+      text-align: center;
+      margin: 0 0 10px;
+      color: #222;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding: 6px 0;
+    }
+
+    li button {
+      background: #ff6b6b;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 25px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #e63946;
+      text-align: center;
+    }
+
+    #winner {
+      font-size: 28px;
+      color: #1d3557;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+
+    #winner.flash {
+      animation: flash 0.6s alternate 4;
+    }
+
+    @keyframes flash {
+      from { color: #1d3557; }
+      to { color: #f72585; transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎡 Vòng Quay May Mắn Pro 🎯</h1>
+
+  <div class="controls">
+    <input type="text" id="nameInput" placeholder="Nhập tên người chơi...">
+    <button id="addBtn" onclick="addName()">Thêm</button>
+    <button id="spinBtn" onclick="spin()">Quay!</button>
+    <button id="resetBtn" onclick="resetList()">Reset</button>
+  </div>
+
+  <canvas id="wheel" width="400" height="400"></canvas>
+
+  <div id="list">
+    <h3>Danh sách người chơi</h3>
+    <ul id="nameList"></ul>
+  </div>
+
+  <div id="result">
+    <div>Kết quả:</div>
+    <div id="winner">--</div>
+  </div>
+
+  <audio id="tickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4e15b24479.mp3?filename=click-124467.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const nameListEl = document.getElementById("nameList");
+    const winnerEl = document.getElementById("winner");
+    const tickSound = document.getElementById("tickSound");
+
+    let names = ["A", "B", "C"];
+    let startAngle = 0;
+    let spinTime = 0;
+    let spinAngle = 0;
+    let spinning = false;
+    let tickThreshold = 0;
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, 400, 400);
+      if (names.length === 0) {
+        ctx.fillStyle = "#555";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Hết người để quay!", 200, 200);
+        return;
+      }
+
+      const arc = Math.PI * 2 / names.length;
+      for (let i = 0; i < names.length; i++) {
+        const angle = startAngle + i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = i % 2 === 0 ? "#ffd166" : "#f4a261";
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 200, angle, angle + arc);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(200 + Math.cos(angle + arc / 2) * 120,
+                      200 + Math.sin(angle + arc / 2) * 120);
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        ctx.fillStyle = "#222";
+        ctx.font = "bold 16px Poppins";
+        ctx.fillText(names[i], -ctx.measureText(names[i]).width / 2, 0);
+        ctx.restore();
+      }
+
+      // Mũi tên
+      ctx.beginPath();
+      ctx.moveTo(190, 5);
+      ctx.lineTo(210, 5);
+      ctx.lineTo(200, 35);
+      ctx.fillStyle = "red";
+      ctx.fill();
+    }
+
+    function easeOut(t, b, c, d) {
+      t /= d;
+      return -c * t * (t - 2) + b;
+    }
+
+    function playTickSound() {
+      tickSound.currentTime = 0;
+      tickSound.play().catch(()=>{});
+    }
+
+    function rotateWheel() {
+      if (!spinning) return;
+      spinTime += 20;
+      if (spinTime >= 5000) {
+        spinning = false;
+        stopWheel();
+        return;
+      }
+
+      const spinAngleNow = easeOut(spinTime, spinAngle, -spinAngle, 5000);
+      startAngle += (spinAngleNow * Math.PI / 180);
+
+      // âm thanh click mỗi khi vượt qua ranh giới
+      if (spinAngleNow < tickThreshold) {
+        tickThreshold = spinAngleNow - 1;
+        playTickSound();
+      }
+
+      drawWheel();
+      requestAnimationFrame(rotateWheel);
+    }
+
+    function spin() {
+      if (names.length === 0) {
+        alert("Hết người để quay!");
+        return;
+      }
+      if (spinning) return;
+
+      spinAngle = Math.random() * 30 + 20;
+      spinTime = 0;
+      spinning = true;
+      tickThreshold = spinAngle;
+
+      rotateWheel();
+    }
+
+    function stopWheel() {
+      const arc = Math.PI * 2 / names.length;
+      const degrees = startAngle * 180 / Math.PI + 90;
+      const arcd = arc * 180 / Math.PI;
+      const index = Math.floor((360 - (degrees % 360)) / arcd) % names.length;
+      const winner = names[index];
+      winnerEl.textContent = `🎉 ${winner} 🎉`;
+      winnerEl.classList.add("flash");
+
+      // Âm thanh và highlight 1 chút
+      playTickSound();
+      setTimeout(() => { winnerEl.classList.remove("flash"); }, 1500);
+
+      // Xoá người trúng sau 2s
+      setTimeout(() => {
+        names.splice(index, 1);
+        renderList();
+        drawWheel();
+      }, 2000);
+    }
+
+    // Danh sách
+    function renderList() {
+      nameListEl.innerHTML = "";
+      names.forEach((name, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${name} <button onclick="removeName(${i})">X</button>`;
+        nameListEl.appendChild(li);
+      });
+    }
+
+    function addName() {
+      const input = document.getElementById("nameInput");
+      const name = input.value.trim();
+      if (!name) return;
+      names.push(name);
+      input.value = "";
+      renderList();
+      drawWheel();
+    }
+
+    function removeName(i) {
+      names.splice(i, 1);
+      renderList();
+      drawWheel();
+    }
+
+    function resetList() {
+      if (confirm("Bạn có chắc muốn reset toàn bộ danh sách?")) {
+        names = [];
+        renderList();
+        drawWheel();
+        winnerEl.textContent = "--";
+      }
+    }
+
+    renderList();
+    drawWheel();
+  </script>
+</body>
+</html>
