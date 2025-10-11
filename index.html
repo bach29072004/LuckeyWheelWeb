@@ -338,11 +338,13 @@
 
         // ✅ Ultra Smooth Motion – deceleration theo khoảng cách
         const remaining = targetRotation - nextDeg;
-        if (remaining <= 350) {
-          const t = Math.max(0, remaining / 350); // t từ 1 -> 0
-          const smooth = t * t; // ease-out power2
-          nextDeg = currentDeg + spinAngleNow * smooth + 0.15; // chống dừng sớm
+
+        if (remaining <= 450) {
+          const t = Math.max(0, remaining / 450); // t từ 1 -> 0
+           const smooth = (1 - Math.pow(1 - t, 3))*0.5;
+          nextDeg = currentDeg + spinAngleNow * smooth + 0.08; // giữ lực 1 tí
         }
+        
 
         // ✅ Chốt cuối
         if (nextDeg >= targetRotation) {
@@ -422,6 +424,13 @@
         spinning = true;
         tickThreshold = spinAngle;
         targetRotation = (startAngle * 180) / Math.PI + totalDeg;
+
+        let arc = 360 / names.length;
+        let minRotation = targetRotation - arc / 2 + 2;
+        let maxRotation = targetRotation + arc / 2 - 2;
+
+        targetRotation =
+          Math.random() * (maxRotation - minRotation) + minRotation;
 
         rotateWheel();
       }
