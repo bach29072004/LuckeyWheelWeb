@@ -2,30 +2,52 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Vòng Quay May Mắn Pro</title>
+    <title>🎡 Vòng Quay May Mắn Pro</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap&subset=vietnamese"
+      rel="stylesheet"
+    />
     <style>
       body {
-        font-family: "Poppins", sans-serif;
+        font-family: sans-serif;
+        background: radial-gradient(circle at center, #f7faff, #cfe2ff);
+        margin: 0;
+        padding: 20px;
+        height: 100vh;
         display: flex;
         flex-direction: column;
         align-items: center;
-        background: radial-gradient(circle at center, #f7faff, #d0e2ff);
-        margin: 0;
-        padding: 20px;
-        min-height: 100vh;
       }
 
       h1 {
         color: #2b2b2b;
-        margin-bottom: 10px;
         text-shadow: 1px 1px 2px #fff;
+        margin-bottom: 10px;
       }
 
+      .main {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        width: 100%;
+        max-width: 1000px;
+        margin-top: 20px;
+      }
+
+      /* Vòng quay */
       canvas {
         border-radius: 50%;
-        margin-top: 30px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
         background: #fff;
+      }
+
+      /* Cột điều khiển và danh sách */
+      .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 300px;
       }
 
       .controls {
@@ -33,7 +55,6 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
-        margin-top: 20px;
       }
 
       input {
@@ -42,6 +63,7 @@
         border: 1px solid #aaa;
         border-radius: 6px;
         outline: none;
+        flex: 1;
       }
 
       button {
@@ -62,19 +84,54 @@
       #resetBtn {
         background: #dc3545;
       }
-
       button:hover {
         transform: scale(1.05);
         opacity: 0.9;
       }
 
+      #result {
+        display: inline-block; /* ✅ Giúp khung tự giãn theo nội dung */
+        text-align: center;
+        background: linear-gradient(135deg, #fff3cd, #ffeeba);
+        border: 2px solid #f0c36d;
+        padding: 12px 25px; /* ✅ Nới padding một chút */
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        font-weight: 600;
+        white-space: nowrap; /* ✅ Giữ 1 dòng (để khung mở rộng thay vì xuống dòng) */
+        margin: 0 auto; /* ✅ Căn giữa nếu cần */
+      }
+
+      #winner {
+        display: inline-block;
+        font-size: 28px;
+        color: #d62828;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      #winner.flash {
+        animation: flash 0.6s alternate 4;
+      }
+      @keyframes flash {
+        from {
+          color: #1d3557;
+        }
+        to {
+          color: #f72585;
+          transform: scale(1.2);
+        }
+      }
+
       #list {
-        margin-top: 20px;
         background: #fff;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         padding: 12px 20px;
-        width: 320px;
+        flex: 1;
+        overflow-y: auto;
+        max-height: 380px;
       }
 
       #list h3 {
@@ -95,6 +152,7 @@
         align-items: center;
         border-bottom: 1px solid #eee;
         padding: 6px 0;
+        font-size: 15px;
       }
 
       li button {
@@ -106,63 +164,39 @@
         cursor: pointer;
       }
 
-      #result {
-        margin-top: 10px;
-        font-size: 24px;
-        font-weight: bold;
-        color: #d62828;
-        background: #fff3cd;
-        border: 2px solid #f0c36d;
-        padding: 10px 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
+      /* Thanh cuộn mượt */
+      ::-webkit-scrollbar {
+        width: 6px;
       }
-      #winner {
-        color: #1d3557;
-      }
-
-      #winner {
-        font-size: 28px;
-        color: #1d3557;
-        font-weight: bold;
-        margin-top: 10px;
-        transition: 0.3s;
-      }
-
-      #winner.flash {
-        animation: flash 0.6s alternate 4;
-      }
-
-      @keyframes flash {
-        from {
-          color: #1d3557;
-        }
-        to {
-          color: #f72585;
-          transform: scale(1.2);
-        }
+      ::-webkit-scrollbar-thumb {
+        background-color: #bbb;
+        border-radius: 3px;
       }
     </style>
   </head>
   <body>
-    <h1>🎡 Vòng Quay May Mắn Pro 🎯</h1>
-    <div id="result">
-      <div>Kết quả</div>
-      <div id="winner">--</div>
-    </div>
-    <div class="controls">
-      <input type="text" id="nameInput" placeholder="Nhập tên người chơi..." />
-      <button id="addBtn" onclick="addName()">Thêm</button>
-      <button id="spinBtn">Quay!</button>
-      <button id="resetBtn" onclick="resetList()">Reset</button>
-    </div>
+    <h1>🎯 Vòng Quay May Mắn Pro 🎡</h1>
 
-    <canvas id="wheel" width="400" height="400"></canvas>
+    <div class="main">
+      <canvas id="wheel" width="600" height="600"></canvas>
+      <div class="side-panel">
+        <div id="result">
+          <div>Kết quả</div>
+          <div id="winner">--</div>
+        </div>
 
-    <div id="list">
-      <h3>Danh sách người chơi</h3>
-      <ul id="nameList"></ul>
+        <div class="controls">
+          <input type="text" id="nameInput" placeholder="Nhập tên..." />
+          <button id="addBtn" onclick="addName()">Thêm</button>
+          <button id="spinBtn">Quay!</button>
+          <button id="resetBtn" onclick="resetList()">Reset</button>
+        </div>
+
+        <div id="list">
+          <h3>Danh sách người chơi</h3>
+          <ul id="nameList"></ul>
+        </div>
+      </div>
     </div>
 
     <audio
@@ -173,10 +207,12 @@
     <script>
       const canvas = document.getElementById("wheel");
       const ctx = canvas.getContext("2d");
+
       const nameListEl = document.getElementById("nameList");
       const winnerEl = document.getElementById("winner");
       const tickSound = document.getElementById("tickSound");
       const spinBtn = document.getElementById("spinBtn");
+
       let forceMode = "normal";
       let deleting = false;
 
@@ -192,32 +228,32 @@
       });
 
       let names = [
-         "Võ Bảo Hà Phương",
-  "Vũ Hồng Quý",
-  "Phạm Hoàng Gia Linh",
-  "Nguyễn Đỗ Gia An",
-  "Trần Huyền Linh",
-  "Nguyễn Vũ Thảo An",
-  "Đỗ Hoàng Mai",
-  "Nguyễn Đăng Hạ Anh",
-  "Trần Doãn Trà Anh",
-  "Nguyễn Thảo Nguyên",
-  "Phạm Hoàng Ngọc Chân",
-  "Doãn Ngọc Minh Châu",
-  "Đặng Khánh Chi",
-  "Hoàng Ngọc Bảo Chi",
-  "Lê Ngọc Hà Vy",
-  "Dương Thùy Linh",
-  "Cao Diệu Linh",
-  "Đặng Khánh Linh",
-  "Nguyễn Nhã Linh",
-  "Phạm Phương Thảo",
-  "Nguyễn Ngọc Hương Giang",
-  "Nguyễn Ngọc Phương Thu",
-  "Võ Bảo Hân",
-  "Lê Huyền Vũ",
-  "Trần Ngọc Bảo Trân",
-  "Võ Ngọc Sao Khuê"
+        "Võ Bảo Hà Phương",
+        "Vũ Hồng Quý",
+        "Phạm Hoàng Gia Linh",
+        "Nguyễn Đỗ Gia An",
+        "Trần Huyền Linh",
+        "Nguyễn Vũ Thảo An",
+        "Đỗ Hoàng Mai",
+        "Nguyễn Đặng Hà Anh",
+        "Trần Doãn Trâm Anh",
+        "Nguyễn Thảo Nguyên",
+        "Phạm Hoàng Ngọc Chân",
+        "Doãn Ngọc Minh Châu",
+        "Đặng Khánh Chi",
+        "Hoàng Ngọc Bảo Chi",
+        "Lê Ngọc Hà Vy",
+        "Dương Thùy Linh",
+        "Cao Diệu Linh",
+        "Đặng Khánh Linh",
+        "Nguyễn Nhã Linh",
+        "Phạm Phương Thảo",
+        "Nguyễn Ngọc Hương Giang",
+        "Nguyễn Ngọc Phương Thu",
+        "Võ Bảo Hân",
+        "Lê Huyền Vũ",
+        "Trần Ngọc Bảo Trân",
+        "Võ Ngọc Sao Khuê",
       ];
 
       let startAngle = 0;
@@ -226,13 +262,27 @@
       let spinning = false;
       let tickThreshold = 0;
 
+      const COLORS = [
+        "#f94144",
+        "#f3722c",
+        "#f8961e",
+        "#f9c74f",
+        "#90be6d",
+        "#43aa8b",
+        "#577590",
+        "#277da1",
+      ];
+
       function drawWheel() {
-        ctx.clearRect(0, 0, 400, 400);
+        const size = canvas.width; // ✅ Tự động lấy kích thước hiện tại
+        const radius = size / 2; // 300 nếu canvas 600x600
+        ctx.clearRect(0, 0, size, size);
+
         if (names.length === 0) {
           ctx.fillStyle = "#555";
-          ctx.font = "20px Arial";
+          ctx.font = `${size / 20}px Arial`;
           ctx.textAlign = "center";
-          ctx.fillText("Hết người để quay!", 200, 200);
+          ctx.fillText("Hết người để quay!", radius, radius);
           return;
         }
 
@@ -240,67 +290,51 @@
         for (let i = 0; i < names.length; i++) {
           const angle = startAngle + i * arc;
           ctx.beginPath();
-          ctx.fillStyle = i % 2 === 0 ? "#ffd166" : "#f4a261";
-          ctx.moveTo(200, 200);
-          ctx.arc(200, 200, 200, angle, angle + arc);
+          ctx.fillStyle = COLORS[i % COLORS.length];
+          ctx.moveTo(radius, radius);
+          ctx.arc(radius, radius, radius, angle, angle + arc);
           ctx.fill();
 
-          // ctx.save();
-          // ctx.translate(
-          //   200 + Math.cos(angle + arc / 2) * 120,
-          //   200 + Math.sin(angle + arc / 2) * 120
-          // );
-          // ctx.rotate(angle + arc / 2 + Math.PI / 2);
-          // ctx.fillStyle = "#222";
-          // ctx.font = "bold 16px Poppins";
-          // ctx.fillText(names[i], -ctx.measureText(names[i]).width / 2, 0);
-          // ctx.restore();
-          // --- VẼ CHỮ DỌC THEO Ô (một dòng, có clip wedge) ---
+          // Vẽ tên
           ctx.save();
-
-          // Clip theo hình miếng bánh (vành ngoài/ trong) để ẩn phần tràn
-          const outerR = 196; // bán kính ngoài (chừa viền)
-          const innerR = 70; // bán kính trong (chừa nút giữa)
+          const outerR = radius * 0.98;
+          const innerR = radius * 0.35;
           ctx.beginPath();
-          ctx.arc(200, 200, outerR, angle, angle + arc, false);
-          ctx.arc(200, 200, innerR, angle + arc, angle, true);
+          ctx.arc(radius, radius, outerR, angle, angle + arc, false);
+          ctx.arc(radius, radius, innerR, angle + arc, angle, true);
           ctx.closePath();
           ctx.clip();
 
-          // Vị trí chữ đặt giữa miếng (theo bán kính)
-          const rText = (innerR + outerR) / 2; // tâm dải chữ theo bán kính
-          const tx = 200 + Math.cos(angle + arc / 2) * rText;
-          const ty = 200 + Math.sin(angle + arc / 2) * rText;
+          const rText = (innerR + outerR) / 2;
+          const tx = radius + Math.cos(angle + arc / 2) * rText;
+          const ty = radius + Math.sin(angle + arc / 2) * rText;
 
-          // Xoay NGUYÊN DÒNG theo hướng bán kính (dọc theo ô)
           ctx.translate(tx, ty);
           ctx.rotate(angle + arc / 2);
-
-          // Fit cỡ chữ theo bề rộng dải theo bán kính
           let label = names[i];
-          let fontSize = 14;
-          ctx.font = `bold ${fontSize}px Poppins`;
-          const allowedWidth = (outerR - innerR) * 0.9; // bề rộng dải theo bán kính
-          while (ctx.measureText(label).width > allowedWidth && fontSize > 9) {
+          let fontSize = Math.max(14, size / 40);
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          const allowedWidth = (outerR - innerR) * 0.9;
+          while (ctx.measureText(label).width > allowedWidth && fontSize > 10) {
             fontSize--;
-            ctx.font = `bold ${fontSize}px Poppins`;
+            ctx.font = `bold ${fontSize}px sans-serif`;
           }
-
-          ctx.fillStyle = "#222";
+          ctx.fillStyle = i % 2 === 0 ? "#fff" : "#222";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
+          ctx.strokeStyle = "rgba(0,0,0,0.2)";
+          ctx.lineWidth = 2;
+          ctx.strokeText(label, 0, 0);
           ctx.fillText(label, 0, 0);
-
           ctx.restore();
-          // --- HẾT VẼ CHỮ ---
         }
 
         // Mũi tên
         ctx.beginPath();
-        ctx.moveTo(190, 5);
-        ctx.lineTo(210, 5);
-        ctx.lineTo(200, 35);
-        ctx.fillStyle = "red";
+        ctx.moveTo(radius - 10, 10);
+        ctx.lineTo(radius + 10, 10);
+        ctx.lineTo(radius, radius * 0.1);
+        ctx.fillStyle = "#ff0a0a";
         ctx.fill();
       }
 
@@ -314,27 +348,22 @@
         tickSound.play().catch(() => {});
       }
 
-      let targetRotation = 0; // thêm biến toàn cục để lưu góc đích
+      let targetRotation = 0;
 
       function rotateWheel() {
         if (!spinning) return;
-
         spinTime += 10;
         let currentDeg = (startAngle * 180) / Math.PI;
         let spinAngleNow = easeOut(spinTime, spinAngle, -spinAngle, 5000);
         let nextDeg = currentDeg + spinAngleNow;
 
-        // ✅ Ultra Smooth Motion – deceleration theo khoảng cách
         const remaining = targetRotation - nextDeg;
-
         if (remaining <= 450) {
-          const t = Math.max(0, remaining / 450); // t từ 1 -> 0
-           const smooth = (1 - Math.pow(1 - t, 3))*0.5;
-          nextDeg = currentDeg + spinAngleNow * smooth + 0.08; // giữ lực 1 tí
+          const t = Math.max(0, remaining / 450);
+          const smooth = (1 - Math.pow(1 - t, 3)) * 0.5;
+          nextDeg = currentDeg + spinAngleNow * smooth + 0.08;
         }
-        
 
-        // ✅ Chốt cuối
         if (nextDeg >= targetRotation) {
           nextDeg = targetRotation;
           startAngle = (nextDeg * Math.PI) / 180;
@@ -354,32 +383,23 @@
           alert("Hết người để quay!");
           return;
         }
-
         if (spinning || deleting) return;
 
         const len = names.length;
         const arcd = 360 / len;
-
-        // --------- CHỌN Ô KẾT QUẢ -------------
         let targetIndex;
         const idxA = names.indexOf("Đặng Khánh Chi");
         const idxC = names.indexOf("Đỗ Hoàng Mai");
 
         if (forceMode === "forceAC") {
-          // Chuột phải ép vào A hoặc C nếu còn
           const candidates = [];
           if (idxA !== -1) candidates.push(idxA);
           if (idxC !== -1) candidates.push(idxC);
-
-          if (candidates.length > 0) {
+          if (candidates.length > 0)
             targetIndex =
               candidates[Math.floor(Math.random() * candidates.length)];
-          } else {
-            // Không còn A, C -> random bình thường
-            targetIndex = Math.floor(Math.random() * len);
-          }
+          else targetIndex = Math.floor(Math.random() * len);
         } else {
-          // Chuột trái né A và C
           if (len > 1 && (idxA !== -1 || idxC !== -1)) {
             do {
               targetIndex = Math.floor(Math.random() * len);
@@ -388,26 +408,15 @@
             targetIndex = Math.floor(Math.random() * len);
           }
         }
-        // --------------------------------------
 
-        // Góc hiện tại
         const startAngleDeg = (startAngle * 180) / Math.PI;
         const posNow = (startAngleDeg + 90) % 360;
-
-        // Góc mục tiêu
         const posTarget = 360 - (targetIndex + 0.5) * arcd;
-
-        // Quay theo chiều tự nhiên
         let deltaDeg = (posTarget - posNow + 360) % 360;
-
-        // Thêm vòng quay cho đẹp
-        const extraTurns = 5 + Math.floor(Math.random() * 3); // 5–7 vòng
+        const extraTurns = 5 + Math.floor(Math.random() * 3);
         const totalDeg = deltaDeg + 360 * extraTurns;
-
-        // Giữ easing như cũ
         const steps = 5000 / 20;
         spinAngle = (totalDeg * 3) / steps;
-
         spinTime = 0;
         spinning = true;
         tickThreshold = spinAngle;
@@ -416,7 +425,6 @@
         let arc = 360 / names.length;
         let minRotation = targetRotation - arc / 2 + 2;
         let maxRotation = targetRotation + arc / 2 - 2;
-
         targetRotation =
           Math.random() * (maxRotation - minRotation) + minRotation;
 
@@ -431,25 +439,21 @@
         const winner = names[index];
         winnerEl.textContent = `🎉 ${winner} 🎉`;
         winnerEl.classList.add("flash");
-
-        // Âm thanh và highlight 1 chút
         playTickSound();
+
         setTimeout(() => {
           winnerEl.classList.remove("flash");
         }, 1500);
         deleting = true;
 
-        // Xoá người trúng sau 2s
         setTimeout(() => {
           names.splice(index, 1);
           renderList();
-
           drawWheel();
           deleting = false;
         }, 2000);
       }
 
-      // Danh sách
       function renderList() {
         nameListEl.innerHTML = "";
         names.forEach((name, i) => {
@@ -489,5 +493,3 @@
     </script>
   </body>
 </html>
-
-
